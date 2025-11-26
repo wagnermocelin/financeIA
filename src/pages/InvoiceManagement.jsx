@@ -364,16 +364,16 @@ const InvoiceManagement = () => {
                 </div>
               </div>
 
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-sm">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm">
                 <div className="flex items-start space-x-2">
-                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-semibold text-red-900">⚠️ Funcionalidade Não Disponível</p>
-                    <p className="mt-1 text-red-800">
-                      A busca por período requer integração com certificado digital ou serviços terceiros (NFe.io, Focus NFe).
+                    <p className="font-semibold text-blue-900">🔐 Requer API Backend</p>
+                    <p className="mt-1 text-blue-800">
+                      A busca por período requer o servidor backend rodando com certificado digital configurado.
                     </p>
-                    <p className="mt-2 text-red-800 font-medium">
-                      👉 Use a aba "Buscar por Chave" para consultas reais!
+                    <p className="mt-2 text-blue-800">
+                      <strong>Instruções:</strong> Veja o arquivo <code>server/README.md</code>
                     </p>
                   </div>
                 </div>

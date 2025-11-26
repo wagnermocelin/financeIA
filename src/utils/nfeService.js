@@ -1,6 +1,7 @@
 // Serviço para consulta e processamento de NF-e (Nota Fiscal Eletrônica)
 
 const USE_REAL_API = true // Alternar entre API real e mock
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
 export const nfeService = {
   // Consulta NF-e pela chave de acesso (44 dígitos)
@@ -39,33 +40,39 @@ export const nfeService = {
     }
 
     try {
-      // Consulta real na API da Receita Federal
-      console.log('📡 Fazendo requisição para API da Receita...')
+      // Consulta via API Backend (com certificado digital)
+      console.log('📡 Consultando via API Backend...')
       
-      // API pública da Receita Federal (Portal da NF-e)
-      const url = `https://www.nfe.fazenda.gov.br/portal/consultaRecaptcha.aspx?tipoConsulta=completa&tipoConteudo=XbSeqxE8pl8=&nfe=${chaveClean}`
-      
-      const response = await fetch(url, {
-        method: 'GET',
+      const response = await fetch(`${API_URL}/api/nfe/consultar-chave`, {
+        method: 'POST',
         headers: {
-          'Accept': 'text/html,application/xhtml+xml,application/xml',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        }
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ chaveAcesso: chaveClean })
       })
 
       if (!response.ok) {
-        throw new Error(`Erro na consulta: ${response.status}`)
+        const error = await response.json()
+        throw new Error(error.error || `Erro na consulta: ${response.status}`)
       }
 
-      const html = await response.text()
-      console.log('✅ Resposta recebida da Receita')
+      const result = await response.json()
+      console.log('✅ NF-e consultada com sucesso')
 
-      // Parse do HTML retornado
-      const nfeData = parseNFeHTML(html, chaveClean)
-      
       return {
         success: true,
-        nfe: nfeData
+        nfe: {
+          chaveAcesso: result.chaveAcesso,
+          numero: result.nfe.numero,
+          serie: result.nfe.serie,
+          dataEmissao: result.nfe.dataEmissao,
+          valor: result.nfe.valor,
+          emitente: result.nfe.emitente,
+          destinatario: result.nfe.destinatario,
+          status: result.status,
+          protocolo: result.protocolo,
+          tipo: 'Entrada'
+        }
       }
     } catch (error) {
       console.error('❌ Erro ao consultar NF-e:', error)
@@ -75,22 +82,49 @@ export const nfeService = {
 
   // Busca NF-e por período e CNPJ
   buscarPorPeriodo: async (cnpj, dataInicio, dataFim) => {
-    console.log('⚠️ Busca por período ainda não implementada com API real')
-    console.log('📋 Para usar busca por período, você precisa:')
-    console.log('   1. Certificado Digital A1 ou A3')
-    console.log('   2. Integração com API da SEFAZ ou serviço terceiro (NFe.io, Focus NFe)')
-    console.log('   3. Credenciais de acesso')
-    console.log('')
-    console.log('💡 Use a busca por CHAVE DE ACESSO para consultas reais!')
+    console.log('🔍 Buscando NF-e por período:', { cnpj, dataInicio, dataFim })
     
-    throw new Error(
-      'Busca por período não disponível.\n\n' +
-      'Para consultar NF-e reais, use a opção "Por Chave de Acesso".\n\n' +
-      'A busca por período requer:\n' +
-      '• Certificado Digital A1/A3\n' +
-      '• Integração com SEFAZ ou serviço terceiro\n\n' +
-      'Recomendamos usar serviços como NFe.io ou Focus NFe para essa funcionalidade.'
-    )
+    if (!USE_REAL_API) {
+      throw new Error('Busca por período requer API backend configurada')
+    }
+
+    try {
+      // Busca via API Backend (com certificado digital)
+      console.log('📡 Buscando via API Backend...')
+      
+      const response = await fetch(`${API_URL}/api/nfe/buscar-periodo`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          cnpj: cnpj.replace(/\D/g, ''),
+          dataInicio,
+          dataFim
+        })
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || `Erro na busca: ${response.status}`)
+      }
+
+      const result = await response.json()
+      console.log(`✅ ${result.total} NF-e(s) encontrada(s)`)
+
+      return {
+        success: true,
+        nfes: result.nfes.map(nfe => ({
+          ...nfe,
+          tipo: 'Entrada',
+          status: 'Autorizada'
+        })),
+        total: result.total
+      }
+    } catch (error) {
+      console.error('❌ Erro ao buscar NF-e:', error)
+      throw new Error(`Erro ao buscar NF-e: ${error.message}`)
+    }
   },
 
   // Parser de XML de NF-e

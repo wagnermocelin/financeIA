@@ -19,6 +19,7 @@ import InvoiceManagement from './pages/InvoiceManagement'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import CompanyManagement from './pages/admin/CompanyManagement'
 import UserManagement from './pages/admin/UserManagement'
+import CompanySettings from './pages/CompanySettings'
 
 // Componente para proteger rotas
 const ProtectedRoute = ({ children, adminOnly = false }) => {
@@ -136,6 +137,14 @@ function AppRoutes() {
         <ProtectedRoute>
           <Layout>
             <InvoiceManagement />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/company-settings" element={
+        <ProtectedRoute>
+          <Layout>
+            <CompanySettings />
           </Layout>
         </ProtectedRoute>
       } />

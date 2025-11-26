@@ -18,7 +18,8 @@ import {
   CreditCard,
   Package,
   BarChart3,
-  Tag
+  Tag,
+  Settings
 } from 'lucide-react'
 
 const Layout = ({ children }) => {
@@ -43,6 +44,7 @@ const Layout = ({ children }) => {
     { name: 'Fornecedores', href: '/suppliers', icon: Package },
     { name: 'Notas Fiscais', href: '/invoices', icon: FileText },
     { name: 'Análise Financeira', href: '/financial-analysis', icon: BarChart3 },
+    { name: 'Configurações', href: '/company-settings', icon: Settings },
   ]
 
   const adminNavigation = [
