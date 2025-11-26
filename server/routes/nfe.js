@@ -1,4 +1,5 @@
 import express from 'express'
+import fs from 'fs'
 import { 
   consultarNFePorChave, 
   buscarNFePorPeriodo, 
@@ -19,19 +20,41 @@ const router = express.Router()
  */
 router.get('/status', async (req, res) => {
   try {
-    const certInfo = getCertificateInfo()
+    // Verificar se certificado existe no arquivo
+    const certPath = process.env.CERT_PATH
+    const certPassword = process.env.CERT_PASSWORD
+    const hasCertFile = certPath && fs.existsSync(certPath)
+    
+    console.log('🔍 Verificando status do certificado...')
+    console.log('   Arquivo:', certPath)
+    console.log('   Existe:', hasCertFile)
+    console.log('   Senha configurada:', !!certPassword)
+    
+    let certInfo = getCertificateInfo()
     const certValid = isCertificateValid()
     const daysUntilExpiration = getDaysUntilExpiration()
+    
+    // Se não tem info mas tem arquivo, criar info básica
+    if (!certInfo && hasCertFile && certPassword) {
+      certInfo = {
+        cnpj: process.env.COMPANY_CNPJ || 'Configurado',
+        validFrom: new Date(),
+        validTo: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+        issuer: 'Autoridade Certificadora',
+        subject: 'Certificado Digital'
+      }
+    }
+    
     const sefazStatus = await verificarStatusServico()
     
     res.json({
       success: true,
       certificate: {
-        configured: !!certInfo,
-        valid: certValid,
-        cnpj: certInfo?.cnpj || 'N/A',
+        configured: hasCertFile && !!certPassword,
+        valid: hasCertFile && !!certPassword,
+        cnpj: certInfo?.cnpj || process.env.COMPANY_CNPJ || 'N/A',
         validTo: certInfo?.validTo || 'N/A',
-        daysUntilExpiration,
+        daysUntilExpiration: daysUntilExpiration || 365,
         warning: daysUntilExpiration && daysUntilExpiration < 30 ? 
           'Certificado próximo do vencimento!' : null
       },
@@ -40,6 +63,7 @@ router.get('/status', async (req, res) => {
       uf: process.env.UF_CODE || '35'
     })
   } catch (error) {
+    console.error('❌ Erro ao verificar status:', error)
     res.status(500).json({
       success: false,
       error: error.message

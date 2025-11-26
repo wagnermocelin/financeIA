@@ -119,27 +119,34 @@ export const buscarNFePorPeriodo = async (cnpj, dataInicio, dataFim) => {
     console.log('🔐 Agente HTTPS configurado')
     
     // Converter datas para NSU (Número Sequencial Único)
-    // Em produção, você precisaria manter controle dos NSUs
-    const nsuInicial = '000000000000000' // 15 dígitos
+    // IMPORTANTE: A SEFAZ retorna o próximo NSU a ser usado
+    // Por enquanto, vamos usar 0 mas em produção deve-se salvar o último NSU
+    const nsuInicial = '000000000000000' // 15 dígitos - começar do zero
     
-    // Montar XML de distribuição
+    console.log('⚠️  IMPORTANTE: Se receber erro 656, aguarde 1 hora ou use o NSU retornado')
+    console.log('   NSU inicial:', nsuInicial)
+    
+    // Montar XML de distribuição (formato correto sem CDATA)
     const xmlDistribuicao = `<?xml version="1.0" encoding="UTF-8"?>
-<soap12:Envelope xmlns:soap12="http://www.w3.org/2003/05/soap-envelope" xmlns:nfeDist="http://www.portalfiscal.inf.br/nfe/wsdl/NFeDistribuicaoDFe">
-  <soap12:Header/>
-  <soap12:Body>
-    <nfeDist:nfeDistDFeInteresse>
-      <nfeDist:nfeDadosMsg><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
-<distDFeInt xmlns="http://www.portalfiscal.inf.br/nfe" versao="1.01">
-  <tpAmb>${process.env.SEFAZ_ENVIRONMENT === 'producao' ? '1' : '2'}</tpAmb>
-  <cUFAutor>${process.env.UF_CODE || '35'}</cUFAutor>
-  <CNPJ>${cnpj.replace(/\D/g, '')}</CNPJ>
-  <distNSU>
-    <ultNSU>${nsuInicial}</ultNSU>
-  </distNSU>
-</distDFeInt>]]></nfeDist:nfeDadosMsg>
-    </nfeDist:nfeDistDFeInteresse>
-  </soap12:Body>
-</soap12:Envelope>`
+<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:nfe="http://www.portalfiscal.inf.br/nfe/wsdl/NFeDistribuicaoDFe">
+  <soap:Body>
+    <nfe:nfeDistDFeInteresse>
+      <nfe:nfeDadosMsg>
+        <distDFeInt xmlns="http://www.portalfiscal.inf.br/nfe" versao="1.01">
+          <tpAmb>${process.env.SEFAZ_ENVIRONMENT === 'producao' ? '1' : '2'}</tpAmb>
+          <cUFAutor>${process.env.UF_CODE || '35'}</cUFAutor>
+          <CNPJ>${cnpj.replace(/\D/g, '')}</CNPJ>
+          <distNSU>
+            <ultNSU>${nsuInicial}</ultNSU>
+          </distNSU>
+        </distDFeInt>
+      </nfe:nfeDadosMsg>
+    </nfe:nfeDistDFeInteresse>
+  </soap:Body>
+</soap:Envelope>`
+
+    console.log('📄 XML enviado (primeiros 500 chars):')
+    console.log(xmlDistribuicao.substring(0, 500))
 
     console.log('📤 Enviando requisição para SEFAZ...')
 
@@ -154,11 +161,16 @@ export const buscarNFePorPeriodo = async (cnpj, dataInicio, dataFim) => {
 
     console.log('📥 Resposta recebida da SEFAZ')
     console.log('Status:', response.status)
+    console.log('Tamanho da resposta:', response.data?.length, 'bytes')
+
+    // Salvar resposta para debug
+    console.log('📄 Primeiros 500 caracteres da resposta:')
+    console.log(response.data?.substring(0, 500))
 
     // Parse resposta XML
     const result = xmlParser.parse(response.data)
     
-    console.log('✅ NF-e buscadas com sucesso')
+    console.log('✅ XML parseado, processando resposta...')
     return parseDistribuicaoResponse(result, dataInicio, dataFim)
   } catch (error) {
     console.error('❌ Erro ao buscar NF-e:', error.message)
@@ -313,26 +325,42 @@ const parseDistribuicaoResponse = (xmlResult, dataInicio, dataFim) => {
       throw new Error('Resposta inválida da SEFAZ - resposta não encontrada')
     }
     
-    const retorno = response['nfeDistDFeInteresseResult'] || response['retDistDFeInt']
+    let retorno = response['nfeDistDFeInteresseResult']
     
     if (!retorno) {
-      console.error('❌ Retorno não encontrado')
+      console.error('❌ nfeDistDFeInteresseResult não encontrado')
       console.log('Response disponível:', Object.keys(response))
-      throw new Error('Resposta inválida da SEFAZ - retorno não encontrado')
+      throw new Error('Resposta inválida da SEFAZ - nfeDistDFeInteresseResult não encontrado')
     }
     
-    const cStat = retorno.cStat
-    const xMotivo = retorno.xMotivo
+    // O retorno pode estar dentro de retDistDFeInt
+    if (retorno.retDistDFeInt) {
+      retorno = retorno.retDistDFeInt
+    }
+    
+    console.log('📦 Estrutura completa do retorno:', JSON.stringify(retorno, null, 2))
+    
+    const cStat = retorno.cStat || retorno['@_cStat']
+    const xMotivo = retorno.xMotivo || retorno['@_xMotivo']
+    const ultNSU = retorno.ultNSU || retorno.maxNSU || retorno['@_ultNSU']
     
     console.log(`📊 Status SEFAZ: ${cStat} - ${xMotivo}`)
+    console.log(`📊 NSU: ${ultNSU}`)
+    console.log(`📊 Chaves do retorno:`, Object.keys(retorno))
     
     // Códigos de retorno comuns:
     // 137 = Nenhum documento localizado
     // 138 = Documentos localizados
     // 656 = Consumo indevido
+    // 656 = Rejeição: Consumo Indevido
     
     if (cStat === '137') {
       console.log('ℹ️  Nenhum documento localizado no período')
+      console.log('⚠️  IMPORTANTE: Isso pode significar que:')
+      console.log('   1. Não há NF-e no período para este CNPJ')
+      console.log('   2. O NSU inicial está incorreto')
+      console.log('   3. Ambiente de homologação não tem dados')
+      console.log('   4. CNPJ não está autorizado para consulta')
       return {
         success: true,
         nfes: [],
@@ -341,13 +369,31 @@ const parseDistribuicaoResponse = (xmlResult, dataInicio, dataFim) => {
       }
     }
     
-    if (cStat !== '138') {
-      console.warn(`⚠️  Status não esperado: ${cStat} - ${xMotivo}`)
+    if (cStat === '656') {
+      console.warn(`⚠️  Código 656: Consumo Indevido`)
+      console.warn(`⚠️  Próximo NSU a usar: ${ultNSU}`)
+      console.warn(`⚠️  Aguarde 1 hora antes de consultar novamente`)
+      console.warn(`⚠️  OU implemente cache de NSU para consultas incrementais`)
       return {
         success: true,
         nfes: [],
         total: 0,
-        message: xMotivo || 'Nenhum documento disponível'
+        message: `Limite de consultas atingido. Aguarde 1 hora. Próximo NSU: ${ultNSU}`,
+        nextNSU: ultNSU
+      }
+    }
+    
+    if (cStat !== '138') {
+      console.warn(`⚠️  Status não esperado: ${cStat} - ${xMotivo}`)
+      console.warn(`⚠️  Possíveis causas:`)
+      console.warn(`   - Código 217: CNPJ não autorizado`)
+      console.warn(`   - Código 252: Ambiente de homologação`)
+      console.warn(`   - Código 656: Consulta muito frequente (aguarde 1h)`)
+      return {
+        success: true,
+        nfes: [],
+        total: 0,
+        message: `${xMotivo} (Código: ${cStat})`
       }
     }
     
