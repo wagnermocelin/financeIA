@@ -110,42 +110,50 @@ export const consultarNFePorChave = async (chaveAcesso) => {
 export const buscarNFePorPeriodo = async (cnpj, dataInicio, dataFim) => {
   try {
     console.log('🔍 Buscando NF-e por período:', { cnpj, dataInicio, dataFim })
+    console.log('⚠️  AVISO: Busca por período requer configuração avançada da SEFAZ')
     
     const url = getWebServiceUrl('distribuicao')
     const agent = getCertificateAgent()
     
+    console.log('📡 URL da SEFAZ:', url)
+    console.log('🔐 Agente HTTPS configurado')
+    
     // Converter datas para NSU (Número Sequencial Único)
     // Em produção, você precisaria manter controle dos NSUs
-    const nsuInicial = '0' // Começar do zero ou último NSU processado
+    const nsuInicial = '000000000000000' // 15 dígitos
     
     // Montar XML de distribuição
     const xmlDistribuicao = `<?xml version="1.0" encoding="UTF-8"?>
-<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:nfe="http://www.portalfiscal.inf.br/nfe/wsdl/NFeDistribuicaoDFe">
-  <soap:Header/>
-  <soap:Body>
-    <nfe:nfeDistDFeInteresse>
-      <nfe:nfeDadosMsg>
-        <distDFeInt xmlns="http://www.portalfiscal.inf.br/nfe" versao="1.01">
-          <tpAmb>${process.env.SEFAZ_ENVIRONMENT === 'producao' ? '1' : '2'}</tpAmb>
-          <cUFAutor>${process.env.UF_CODE || '35'}</cUFAutor>
-          <CNPJ>${cnpj.replace(/\D/g, '')}</CNPJ>
-          <distNSU>
-            <ultNSU>${nsuInicial}</ultNSU>
-          </distNSU>
-        </distDFeInt>
-      </nfe:nfeDadosMsg>
-    </nfe:nfeDistDFeInteresse>
-  </soap:Body>
-</soap:Envelope>`
+<soap12:Envelope xmlns:soap12="http://www.w3.org/2003/05/soap-envelope" xmlns:nfeDist="http://www.portalfiscal.inf.br/nfe/wsdl/NFeDistribuicaoDFe">
+  <soap12:Header/>
+  <soap12:Body>
+    <nfeDist:nfeDistDFeInteresse>
+      <nfeDist:nfeDadosMsg><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<distDFeInt xmlns="http://www.portalfiscal.inf.br/nfe" versao="1.01">
+  <tpAmb>${process.env.SEFAZ_ENVIRONMENT === 'producao' ? '1' : '2'}</tpAmb>
+  <cUFAutor>${process.env.UF_CODE || '35'}</cUFAutor>
+  <CNPJ>${cnpj.replace(/\D/g, '')}</CNPJ>
+  <distNSU>
+    <ultNSU>${nsuInicial}</ultNSU>
+  </distNSU>
+</distDFeInt>]]></nfeDist:nfeDadosMsg>
+    </nfeDist:nfeDistDFeInteresse>
+  </soap12:Body>
+</soap12:Envelope>`
+
+    console.log('📤 Enviando requisição para SEFAZ...')
 
     const response = await axios.post(url, xmlDistribuicao, {
       headers: {
         'Content-Type': 'application/soap+xml; charset=utf-8',
-        'SOAPAction': 'http://www.portalfiscal.inf.br/nfe/wsdl/NFeDistribuicaoDFe'
+        'SOAPAction': ''
       },
       httpsAgent: agent,
       timeout: 60000
     })
+
+    console.log('📥 Resposta recebida da SEFAZ')
+    console.log('Status:', response.status)
 
     // Parse resposta XML
     const result = xmlParser.parse(response.data)
@@ -154,7 +162,18 @@ export const buscarNFePorPeriodo = async (cnpj, dataInicio, dataFim) => {
     return parseDistribuicaoResponse(result, dataInicio, dataFim)
   } catch (error) {
     console.error('❌ Erro ao buscar NF-e:', error.message)
-    throw error
+    
+    // Se falhar, retornar mensagem explicativa
+    if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') {
+      throw new Error('Não foi possível conectar à SEFAZ. Verifique sua conexão e certificado.')
+    }
+    
+    if (error.response) {
+      console.error('Resposta da SEFAZ:', error.response.status, error.response.statusText)
+      console.error('Dados:', error.response.data?.substring(0, 500))
+    }
+    
+    throw new Error(`Erro na busca: ${error.message}. A busca por período requer configuração avançada do certificado e pode não estar disponível em homologação.`)
   }
 }
 
@@ -268,24 +287,67 @@ const parseNFeData = (nfeXml) => {
  */
 const parseDistribuicaoResponse = (xmlResult, dataInicio, dataFim) => {
   try {
-    const envelope = xmlResult['soap:Envelope'] || xmlResult['soapenv:Envelope']
-    const body = envelope['soap:Body'] || envelope['soapenv:Body']
+    console.log('🔍 Fazendo parse da resposta da SEFAZ...')
+    
+    // Tentar diferentes estruturas de resposta
+    const envelope = xmlResult['soap12:Envelope'] || xmlResult['soap:Envelope'] || xmlResult['soapenv:Envelope']
+    
+    if (!envelope) {
+      console.error('❌ Estrutura SOAP não encontrada')
+      console.log('Estrutura recebida:', Object.keys(xmlResult))
+      throw new Error('Resposta inválida da SEFAZ - estrutura SOAP não encontrada')
+    }
+    
+    const body = envelope['soap12:Body'] || envelope['soap:Body'] || envelope['soapenv:Body']
+    
+    if (!body) {
+      console.error('❌ Body SOAP não encontrado')
+      throw new Error('Resposta inválida da SEFAZ - body não encontrado')
+    }
+    
     const response = body['nfeDistDFeInteresseResponse'] || body['nfeResultMsg']
-    const retorno = response['retDistDFeInt']
+    
+    if (!response) {
+      console.error('❌ Resposta nfeDistDFeInteresse não encontrada')
+      console.log('Body disponível:', Object.keys(body))
+      throw new Error('Resposta inválida da SEFAZ - resposta não encontrada')
+    }
+    
+    const retorno = response['nfeDistDFeInteresseResult'] || response['retDistDFeInt']
     
     if (!retorno) {
-      throw new Error('Resposta inválida da SEFAZ')
+      console.error('❌ Retorno não encontrado')
+      console.log('Response disponível:', Object.keys(response))
+      throw new Error('Resposta inválida da SEFAZ - retorno não encontrado')
     }
     
     const cStat = retorno.cStat
     const xMotivo = retorno.xMotivo
     
-    if (cStat !== '138') { // 138 = Documentos localizados
+    console.log(`📊 Status SEFAZ: ${cStat} - ${xMotivo}`)
+    
+    // Códigos de retorno comuns:
+    // 137 = Nenhum documento localizado
+    // 138 = Documentos localizados
+    // 656 = Consumo indevido
+    
+    if (cStat === '137') {
+      console.log('ℹ️  Nenhum documento localizado no período')
       return {
         success: true,
         nfes: [],
         total: 0,
-        message: xMotivo
+        message: 'Nenhuma NF-e encontrada no período informado'
+      }
+    }
+    
+    if (cStat !== '138') {
+      console.warn(`⚠️  Status não esperado: ${cStat} - ${xMotivo}`)
+      return {
+        success: true,
+        nfes: [],
+        total: 0,
+        message: xMotivo || 'Nenhum documento disponível'
       }
     }
     
@@ -293,21 +355,28 @@ const parseDistribuicaoResponse = (xmlResult, dataInicio, dataFim) => {
     const documentos = retorno.loteDistDFeInt?.docZip || []
     const nfes = []
     
+    console.log(`📦 Processando ${Array.isArray(documentos) ? documentos.length : 1} documento(s)...`)
+    
     for (const doc of Array.isArray(documentos) ? documentos : [documentos]) {
       try {
         // Decodificar e processar cada documento
-        const xmlDoc = Buffer.from(doc['#text'], 'base64').toString('utf-8')
+        const xmlDoc = Buffer.from(doc['#text'] || doc, 'base64').toString('utf-8')
         const nfeData = xmlParser.parse(xmlDoc)
         
         // Extrair informações e adicionar à lista
-        const nfe = parseNFeData(nfeData.nfeProc?.NFe?.infNFe || {})
+        const nfe = parseNFeData(nfeData.nfeProc?.NFe?.infNFe || nfeData.NFe?.infNFe || {})
         
         // Filtrar por período se necessário
-        const dataEmissao = new Date(nfe.dataEmissao)
-        const inicio = new Date(dataInicio)
-        const fim = new Date(dataFim)
-        
-        if (dataEmissao >= inicio && dataEmissao <= fim) {
+        if (nfe.dataEmissao) {
+          const dataEmissao = new Date(nfe.dataEmissao)
+          const inicio = new Date(dataInicio)
+          const fim = new Date(dataFim)
+          
+          if (dataEmissao >= inicio && dataEmissao <= fim) {
+            nfes.push(nfe)
+            console.log(`✅ NF-e ${nfe.numero} adicionada`)
+          }
+        } else {
           nfes.push(nfe)
         }
       } catch (error) {
@@ -315,14 +384,17 @@ const parseDistribuicaoResponse = (xmlResult, dataInicio, dataFim) => {
       }
     }
     
+    console.log(`✅ Total de ${nfes.length} NF-e(s) processada(s)`)
+    
     return {
       success: true,
       nfes: nfes.sort((a, b) => new Date(b.dataEmissao) - new Date(a.dataEmissao)),
       total: nfes.length,
-      ultimoNSU: retorno.ultNSU || '0'
+      ultimoNSU: retorno.ultNSU || retorno.maxNSU || '0'
     }
   } catch (error) {
-    console.error('❌ Erro ao fazer parse da distribuição:', error)
+    console.error('❌ Erro ao fazer parse da distribuição:', error.message)
+    console.error('Stack:', error.stack)
     throw error
   }
 }
