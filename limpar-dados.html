@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinanceIA - Limpar Dados</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .info-box {
+            background: #f0f9ff;
+            border-left: 4px solid #0ea5e9;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        .info-box h3 {
+            color: #0369a1;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        
+        .info-box ul {
+            list-style: none;
+            color: #0c4a6e;
+            font-size: 13px;
+        }
+        
+        .info-box li {
+            padding: 3px 0;
+        }
+        
+        .info-box li:before {
+            content: "✓ ";
+            color: #10b981;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+        
+        .warning-box {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        .warning-box p {
+            color: #92400e;
+            font-size: 13px;
+            margin: 0;
+        }
+        
+        .stats {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+        
+        .stat-label {
+            color: #6b7280;
+            font-size: 14px;
+        }
+        
+        .stat-value {
+            color: #111827;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(239, 68, 68, 0.3);
+        }
+        
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+        
+        .success-message {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+            font-weight: 600;
+            display: none;
+        }
+        
+        .success-message.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗑️ Limpar Dados</h1>
+        <p class="subtitle">FinanceIA - Gerenciamento de Dados</p>
+        
+        <div class="info-box">
+            <h3>📊 Dados Armazenados</h3>
+            <ul id="dataList">
+                <li>Carregando...</li>
+            </ul>
+        </div>
+        
+        <div class="stats" id="stats">
+            <div class="stat-item">
+                <span class="stat-label">Transações</span>
+                <span class="stat-value" id="transactionsCount">-</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Orçamentos</span>
+                <span class="stat-value" id="budgetsCount">-</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Extratos Bancários</span>
+                <span class="stat-value" id="statementsCount">-</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Categorias</span>
+                <span class="stat-value" id="categoriesCount">-</span>
+            </div>
+        </div>
+        
+        <div class="warning-box">
+            <p>⚠️ <strong>Atenção:</strong> Esta ação não pode ser desfeita. Todos os dados serão permanentemente removidos do navegador.</p>
+        </div>
+        
+        <div class="buttons">
+            <button class="btn-secondary" onclick="window.close()">Cancelar</button>
+            <button class="btn-danger" onclick="clearData()">Limpar Todos os Dados</button>
+        </div>
+        
+        <div class="success-message" id="successMessage">
+            ✅ Dados limpos com sucesso! Recarregando...
+        </div>
+    </div>
+
+    <script>
+        // Carrega e exibe estatísticas
+        function loadStats() {
+            const transactions = JSON.parse(localStorage.getItem('financeia_transactions') || '[]');
+            const budgets = JSON.parse(localStorage.getItem('financeia_budgets') || '[]');
+            const statements = JSON.parse(localStorage.getItem('financeia_bankStatements') || '[]');
+            const categories = JSON.parse(localStorage.getItem('financeia_categories') || '[]');
+            
+            document.getElementById('transactionsCount').textContent = transactions.length;
+            document.getElementById('budgetsCount').textContent = budgets.length;
+            document.getElementById('statementsCount').textContent = statements.length;
+            document.getElementById('categoriesCount').textContent = categories.length;
+            
+            // Atualiza lista de dados
+            const dataList = document.getElementById('dataList');
+            const items = [];
+            
+            if (transactions.length > 0) items.push(`${transactions.length} transações`);
+            if (budgets.length > 0) items.push(`${budgets.length} orçamentos`);
+            if (statements.length > 0) items.push(`${statements.length} extratos`);
+            if (categories.length > 0) items.push(`${categories.length} categorias`);
+            
+            if (items.length === 0) {
+                dataList.innerHTML = '<li style="color: #6b7280;">Nenhum dado encontrado</li>';
+            } else {
+                dataList.innerHTML = items.map(item => `<li>${item}</li>`).join('');
+            }
+        }
+        
+        // Limpa todos os dados
+        function clearData() {
+            if (!confirm('Tem certeza que deseja limpar TODOS os dados? Esta ação não pode ser desfeita!')) {
+                return;
+            }
+            
+            // Remove todos os dados do localStorage
+            localStorage.removeItem('financeia_transactions');
+            localStorage.removeItem('financeia_budgets');
+            localStorage.removeItem('financeia_bankStatements');
+            localStorage.removeItem('financeia_categories');
+            
+            // Mostra mensagem de sucesso
+            const successMessage = document.getElementById('successMessage');
+            successMessage.classList.add('show');
+            
+            // Atualiza estatísticas
+            setTimeout(() => {
+                loadStats();
+            }, 500);
+            
+            // Redireciona após 2 segundos
+            setTimeout(() => {
+                window.location.href = 'http://localhost:3000';
+            }, 2000);
+        }
+        
+        // Carrega estatísticas ao abrir a página
+        loadStats();
+    </script>
+</body>
+</html>

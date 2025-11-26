@@ -1,0 +1,218 @@
+import { createContext, useContext, useState, useEffect } from 'react'
+import { generateMockData } from '../utils/mockData'
+
+const FinanceContext = createContext()
+
+export const useFinance = () => {
+  const context = useContext(FinanceContext)
+  if (!context) {
+    throw new Error('useFinance deve ser usado dentro de FinanceProvider')
+  }
+  return context
+}
+
+export const FinanceProvider = ({ children }) => {
+  const [transactions, setTransactions] = useState([])
+  const [budgets, setBudgets] = useState([])
+  const [bankStatements, setBankStatements] = useState([])
+  const [categories, setCategories] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    // Carrega dados do localStorage ou usa dados iniciais
+    const loadData = async () => {
+      setLoading(true)
+      
+      // Tenta carregar do localStorage
+      const savedTransactions = localStorage.getItem('financeia_transactions')
+      const savedBudgets = localStorage.getItem('financeia_budgets')
+      const savedBankStatements = localStorage.getItem('financeia_bankStatements')
+      const savedCategories = localStorage.getItem('financeia_categories')
+      
+      if (savedTransactions || savedBudgets || savedBankStatements || savedCategories) {
+        // Usa dados salvos
+        setTransactions(savedTransactions ? JSON.parse(savedTransactions) : [])
+        setBudgets(savedBudgets ? JSON.parse(savedBudgets) : [])
+        setBankStatements(savedBankStatements ? JSON.parse(savedBankStatements) : [])
+        setCategories(savedCategories ? JSON.parse(savedCategories) : generateMockData().categories)
+      } else {
+        // Primeira vez - usa apenas categorias padrão
+        const mockData = generateMockData()
+        setTransactions([])
+        setBudgets([])
+        setBankStatements([])
+        setCategories(mockData.categories)
+      }
+      
+      setLoading(false)
+    }
+    loadData()
+  }, [])
+
+  // Salva transações no localStorage sempre que mudam
+  useEffect(() => {
+    if (!loading) {
+      localStorage.setItem('financeia_transactions', JSON.stringify(transactions))
+    }
+  }, [transactions, loading])
+
+  // Salva orçamentos no localStorage
+  useEffect(() => {
+    if (!loading) {
+      localStorage.setItem('financeia_budgets', JSON.stringify(budgets))
+    }
+  }, [budgets, loading])
+
+  // Salva extratos no localStorage
+  useEffect(() => {
+    if (!loading) {
+      localStorage.setItem('financeia_bankStatements', JSON.stringify(bankStatements))
+    }
+  }, [bankStatements, loading])
+
+  // Salva categorias no localStorage
+  useEffect(() => {
+    if (!loading) {
+      localStorage.setItem('financeia_categories', JSON.stringify(categories))
+    }
+  }, [categories, loading])
+
+  const addTransaction = (transaction) => {
+    const newTransaction = {
+      ...transaction,
+      id: Date.now().toString(),
+      date: new Date().toISOString(),
+    }
+    setTransactions([newTransaction, ...transactions])
+  }
+
+  const updateTransaction = (id, updates) => {
+    setTransactions(transactions.map(t => 
+      t.id === id ? { ...t, ...updates } : t
+    ))
+  }
+
+  const deleteTransaction = (id) => {
+    setTransactions(transactions.filter(t => t.id !== id))
+  }
+
+  const addBudget = (budget) => {
+    const newBudget = {
+      ...budget,
+      id: Date.now().toString(),
+    }
+    setBudgets([...budgets, newBudget])
+  }
+
+  const updateBudget = (id, updates) => {
+    setBudgets(budgets.map(b => 
+      b.id === id ? { ...b, ...updates } : b
+    ))
+  }
+
+  const deleteBudget = (id) => {
+    setBudgets(budgets.filter(b => b.id !== id))
+  }
+
+  const addBankStatement = (statement) => {
+    const newStatement = {
+      ...statement,
+      id: statement.id || Date.now().toString(),
+    }
+    setBankStatements([...bankStatements, newStatement])
+  }
+
+  const reconcileTransaction = (transactionId, statementId) => {
+    updateTransaction(transactionId, { 
+      reconciled: true, 
+      statementId 
+    })
+    setBankStatements(bankStatements.map(s =>
+      s.id === statementId ? { ...s, reconciled: true, transactionId } : s
+    ))
+  }
+
+  const getFinancialSummary = () => {
+    const currentMonth = new Date().getMonth()
+    const currentYear = new Date().getFullYear()
+    
+    const monthTransactions = transactions.filter(t => {
+      const date = new Date(t.date)
+      return date.getMonth() === currentMonth && date.getFullYear() === currentYear
+    })
+
+    const income = monthTransactions
+      .filter(t => t.type === 'income')
+      .reduce((sum, t) => sum + t.amount, 0)
+
+    const expenses = monthTransactions
+      .filter(t => t.type === 'expense')
+      .reduce((sum, t) => sum + t.amount, 0)
+
+    const balance = income - expenses
+
+    return { income, expenses, balance, transactions: monthTransactions }
+  }
+
+  const getBudgetStatus = () => {
+    const currentMonth = new Date().getMonth()
+    const currentYear = new Date().getFullYear()
+    
+    return budgets.map(budget => {
+      const spent = transactions
+        .filter(t => {
+          const date = new Date(t.date)
+          return t.category === budget.category &&
+                 t.type === 'expense' &&
+                 date.getMonth() === currentMonth &&
+                 date.getFullYear() === currentYear
+        })
+        .reduce((sum, t) => sum + t.amount, 0)
+
+      const percentage = (spent / budget.limit) * 100
+
+      return {
+        ...budget,
+        spent,
+        remaining: budget.limit - spent,
+        percentage,
+        status: percentage >= 100 ? 'exceeded' : percentage >= 80 ? 'warning' : 'ok'
+      }
+    })
+  }
+
+  // Função para limpar todos os dados (resetar sistema)
+  const clearAllData = () => {
+    setTransactions([])
+    setBudgets([])
+    setBankStatements([])
+    localStorage.removeItem('financeia_transactions')
+    localStorage.removeItem('financeia_budgets')
+    localStorage.removeItem('financeia_bankStatements')
+  }
+
+  const value = {
+    transactions,
+    budgets,
+    bankStatements,
+    categories,
+    loading,
+    addTransaction,
+    updateTransaction,
+    deleteTransaction,
+    addBudget,
+    updateBudget,
+    deleteBudget,
+    addBankStatement,
+    reconcileTransaction,
+    getFinancialSummary,
+    getBudgetStatus,
+    clearAllData,
+  }
+
+  return (
+    <FinanceContext.Provider value={value}>
+      {children}
+    </FinanceContext.Provider>
+  )
+}
