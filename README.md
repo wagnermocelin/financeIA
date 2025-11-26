@@ -1,292 +1,252 @@
-# FinanceIA - Sistema de Controle Financeiro Empresarial com IA
+# 💰 FinanceIA - Sistema de Gestão Financeira Empresarial
 
-Sistema web moderno de gestão financeira empresarial com inteligência artificial integrada, desenvolvido com React e TailwindCSS.
+Sistema completo de gestão financeira com IA integrada, desenvolvido em React + Supabase.
 
-## 🚀 Funcionalidades
+[![React](https://img.shields.io/badge/React-18.x-blue.svg)](https://reactjs.org/)
+[![Vite](https://img.shields.io/badge/Vite-5.x-646CFF.svg)](https://vitejs.dev/)
+[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E.svg)](https://supabase.com/)
+[![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.x-38B2AC.svg)](https://tailwindcss.com/)
 
-### 🔐 Autenticação e Controle de Acesso
-- Sistema de login seguro
-- Três níveis de acesso: Admin, Dono de Empresa e Usuário
-- Proteção de rotas por permissão
-- Gerenciamento de sessão
-- Logout seguro
+---
 
-### 👥 Painel Administrativo
-- **Dashboard Admin**: Visão geral do sistema completo
-- **Gestão de Empresas**: CRUD completo de empresas
-  - Cadastro com CNPJ, endereço e planos
-  - Ativação/desativação de empresas
-  - Controle de planos (Básico, Premium, Enterprise)
-- **Gestão de Usuários**: CRUD completo de usuários
-  - Cadastro com diferentes perfis
-  - Vinculação com empresas
-  - Ativação/desativação de usuários
-  - Controle de permissões
+## 🚀 Funcionalidades Principais
 
-### 📊 Dashboard Financeiro
-- Visão geral completa das finanças
-- Gráficos interativos de receitas vs despesas
-- Análise de despesas por categoria
-- Tendências de saldo
-- Status de orçamentos em tempo real
-- Transações recentes
+### 💳 Importação Automática de Faturas
+- ✅ **Parser Bradesco** - Extrai 43+ transações automaticamente
+- ✅ Suporte a PDF com múltiplas páginas
+- ✅ Detecção automática de operadora
+- ✅ Extração de valor total, vencimento e transações
 
-### 💰 Gestão de Transações
-- Cadastro completo de receitas e despesas
-- Categorização automática
-- Filtros avançados por tipo, categoria e período
-- Edição e exclusão de transações
-- Status de conciliação
+### 📊 Gestão de Transações
+- ✅ **Categorização em Lote** - Selecione múltiplas transações e categorize de uma vez
+- ✅ **IA para Recategorização** - Categorização automática baseada em descrição
+- ✅ Filtros avançados (tipo, categoria, período)
+- ✅ Busca em tempo real
+- ✅ Importação/Exportação Excel
 
-### 🔄 Conciliação Bancária com IA
-- Sugestões inteligentes de conciliação
-- Matching automático de transações com extratos
-- Análise de confiança por IA
-- Visualização de itens pendentes e conciliados
-- Taxa de conciliação em tempo real
+### 📋 Notas Fiscais Eletrônicas (NF-e)
+- ✅ **Consulta Real na Receita Federal** - Busca por chave de acesso (44 dígitos)
+- ✅ Extração automática de dados (emitente, valor, status)
+- ✅ Download de XML
+- ✅ Importação automática como transação
 
-### 📈 Controle de Orçamentos
-- Criação de orçamentos por categoria
-- Monitoramento de limites de gastos
-- Alertas configuráveis
-- Visualização de progresso
-- Status visual (normal, atenção, excedido)
+### 🏦 Conciliação Bancária
+- ✅ Importação de extratos (OFX, CSV)
+- ✅ Conciliação manual e automática
+- ✅ Detecção de duplicatas
+- ✅ Gestão de múltiplas contas
 
-### 📑 Relatórios com IA
-- Geração automática de relatórios financeiros
-- Insights inteligentes sobre desempenho
-- Análise de categorias de despesa
-- Recomendações personalizadas
-- Margem de lucro e indicadores
-- Exportação para PDF e Excel
+### 💼 Gestão Empresarial
+- ✅ Múltiplos cartões de crédito
+- ✅ Gestão de fornecedores
+- ✅ Orçamentos e metas
+- ✅ Categorias personalizadas
+- ✅ Relatórios financeiros
 
-### 🤖 Assistente IA
-- Chat interativo com assistente financeiro
-- Análise de receitas e despesas
-- Sugestões contextualizadas
-- Ações rápidas
-- Respostas em tempo real
+### 📈 Dashboard e Análises
+- ✅ Visão geral financeira
+- ✅ Gráficos de receitas x despesas
+- ✅ Análise por categoria
+- ✅ Evolução temporal
+- ✅ Indicadores de performance
 
-## 🛠️ Tecnologias Utilizadas
+---
 
-- **React 18** - Framework JavaScript
-- **Vite** - Build tool e dev server
-- **TailwindCSS** - Framework CSS utility-first
-- **React Router** - Navegação SPA
-- **Recharts** - Gráficos e visualizações
-- **Lucide React** - Ícones modernos
-- **date-fns** - Manipulação de datas
+## 🛠️ Stack Tecnológico
+
+### Frontend
+- **React 18** - Interface moderna e responsiva
+- **Vite** - Build tool ultrarrápido
+- **TailwindCSS** - Estilização utility-first
+- **Lucide Icons** - Ícones modernos
+- **PDF.js** - Parsing de PDFs
+
+### Backend
+- **Supabase** - Backend as a Service
+- **PostgreSQL** - Banco de dados relacional
+- **Row Level Security (RLS)** - Segurança por linha
+
+### Integrações
+- **Receita Federal** - Consulta de NF-e
+- **IA Local** - Categorização inteligente
+- **Excel/CSV** - Importação/Exportação
+
+---
 
 ## 📦 Instalação
 
 ### Pré-requisitos
-- Node.js 16+ 
+- Node.js 18+ 
 - npm ou yarn
+- Conta Supabase (gratuita)
 
-### Passos
-
-1. **Clone o repositório** (ou use o diretório atual)
+### 1. Clone o Repositório
 ```bash
-cd c:/Users/Wagner/Desktop/SISTEMAS/FinanceIA
+git clone https://github.com/SEU_USUARIO/FinanceIA.git
+cd FinanceIA
 ```
 
-2. **Instale as dependências**
+### 2. Instale as Dependências
 ```bash
 npm install
 ```
 
-3. **Inicie o servidor de desenvolvimento**
+### 3. Configure o Supabase
+
+#### 3.1. Crie um Projeto no Supabase
+1. Acesse [supabase.com](https://supabase.com)
+2. Crie um novo projeto
+3. Copie a URL e a chave anônima
+
+#### 3.2. Configure as Variáveis de Ambiente
+```bash
+cp .env.example .env
+```
+
+Edite o arquivo `.env`:
+```env
+VITE_SUPABASE_URL=sua_url_do_supabase
+VITE_SUPABASE_ANON_KEY=sua_chave_anonima
+```
+
+#### 3.3. Execute o Schema SQL
+No painel do Supabase, vá em **SQL Editor** e execute:
+```sql
+-- Copie e cole o conteúdo de supabase-schema.sql
+```
+
+### 4. Inicie o Servidor de Desenvolvimento
 ```bash
 npm run dev
 ```
 
-4. **Acesse o aplicativo**
+Acesse: `http://localhost:5173`
+
+---
+
+## 🎯 Como Usar
+
+### 1️⃣ Importar Fatura de Cartão
+
+1. Vá em **Cartões de Crédito**
+2. Clique em **Importar Fatura**
+3. Selecione o PDF da fatura Bradesco
+4. Sistema extrai automaticamente:
+   - Valor total
+   - Data de vencimento
+   - 43+ transações individuais
+
+### 2️⃣ Categorizar em Lote
+
+1. Vá em **Transações**
+2. Selecione múltiplas transações (checkboxes)
+3. Clique em **Categorizar Selecionadas**
+4. Escolha a categoria
+5. Pronto! ✅
+
+### 3️⃣ Consultar NF-e
+
+1. Vá em **Gestão de NF-e**
+2. Clique em **Buscar NF-e**
+3. Aba **"Buscar por Chave"**
+4. Digite a chave de 44 dígitos
+5. Sistema busca na Receita Federal
+6. Clique em **Importar** para criar transação
+
+### 4️⃣ Conciliar Extrato Bancário
+
+1. Vá em **Conciliação Bancária**
+2. Importe extrato (OFX ou CSV)
+3. Sistema sugere conciliações automáticas
+4. Confirme ou ajuste manualmente
+
+---
+
+## 📚 Documentação
+
+### Arquivos de Documentação Incluídos:
+
+- `CATEGORIZACAO_LOTE.md` - Guia de categorização em lote
+- `NFE_COMO_USAR.md` - Como usar consulta de NF-e
+- `INTEGRACAO_NFE_REAL.md` - Detalhes da integração com Receita
+- `BRADESCO_CORRIGIDO.md` - Parser de fatura Bradesco
+- `CONFIGURAR_SUPABASE.md` - Setup do Supabase
+- `COMO_TESTAR.md` - Guia de testes
+
+---
+
+## 🎨 Screenshots
+
+### Dashboard
+![Dashboard](docs/screenshots/dashboard.png)
+
+### Importação de Fatura
+![Importação](docs/screenshots/importacao.png)
+
+### Categorização em Lote
+![Categorização](docs/screenshots/categorizacao.png)
+
+### Consulta NF-e
+![NFe](docs/screenshots/nfe.png)
+
+---
+
+## 🔧 Configuração Avançada
+
+### Desabilitar RLS (Desenvolvimento)
+Para desenvolvimento local, você pode desabilitar RLS:
+
+```sql
+-- Execute no SQL Editor do Supabase
+-- Copie o conteúdo de desabilitar-rls-desenvolvimento.sql
 ```
-http://localhost:3000
-```
 
-## 🔑 Credenciais de Acesso
+⚠️ **Atenção**: Não use em produção!
 
-O sistema possui três níveis de usuários pré-cadastrados para demonstração:
+### Adicionar Mais Operadoras de Cartão
 
-### Administrador do Sistema
-- **Email**: admin@financeia.com
-- **Senha**: admin123
-- **Permissões**: Acesso total ao sistema, gestão de empresas e usuários
-
-### Dono de Empresa
-- **Email**: joao@empresa1.com
-- **Senha**: 123456
-- **Permissões**: Gestão financeira completa da empresa, gestão de usuários da empresa
-
-### Usuário Padrão
-- **Email**: maria@empresa1.com
-- **Senha**: 123456
-- **Permissões**: Acesso ao sistema financeiro da empresa
-
-## 🏗️ Estrutura do Projeto
-
-```
-FinanceIA/
-├── src/
-│   ├── components/          # Componentes reutilizáveis
-│   │   ├── Layout.jsx       # Layout principal com sidebar
-│   │   ├── Card.jsx         # Componente de card
-│   │   ├── StatCard.jsx     # Card de estatísticas
-│   │   ├── Modal.jsx        # Modal genérico
-│   │   └── LoadingSpinner.jsx
-│   ├── pages/               # Páginas da aplicação
-│   │   ├── Login.jsx        # Página de login
-│   │   ├── Dashboard.jsx    # Dashboard principal
-│   │   ├── Transactions.jsx # Gestão de transações
-│   │   ├── BankReconciliation.jsx
-│   │   ├── Budgets.jsx      # Controle de orçamentos
-│   │   ├── Reports.jsx      # Relatórios com IA
-│   │   ├── AIAssistant.jsx  # Assistente IA
-│   │   └── admin/           # Páginas administrativas
-│   │       ├── AdminDashboard.jsx
-│   │       ├── CompanyManagement.jsx
-│   │       └── UserManagement.jsx
-│   ├── context/             # Context API
-│   │   ├── AuthContext.jsx  # Contexto de autenticação
-│   │   └── FinanceContext.jsx
-│   ├── utils/               # Utilitários
-│   │   ├── mockData.js      # Dados de exemplo
-│   │   ├── aiService.js     # Serviço de IA
-│   │   └── formatters.js    # Formatadores
-│   ├── App.jsx              # Componente principal
-│   ├── main.jsx             # Entry point
-│   └── index.css            # Estilos globais
-├── package.json
-├── vite.config.js
-├── tailwind.config.js
-└── README.md
-```
-
-## 🎨 Design
-
-### Mobile-First
-- Interface totalmente responsiva
-- Otimizada para dispositivos móveis
-- Sidebar colapsável
-- Tabelas com scroll horizontal
-- Touch-friendly
-
-### Sistema de Cores
-- **Primary**: Azul (#0ea5e9)
-- **Success**: Verde (#10b981)
-- **Danger**: Vermelho (#ef4444)
-- **Warning**: Amarelo (#f59e0b)
-- **Purple**: Roxo (#8b5cf6) - IA
-
-## 🤖 Integração com IA
-
-O sistema possui um serviço de IA simulado (`src/utils/aiService.js`) que pode ser facilmente integrado com APIs reais:
-
-### Serviços Disponíveis
-
-1. **analyzeTransaction** - Categorização automática
-2. **suggestReconciliation** - Matching inteligente
-3. **generateReport** - Geração de relatórios
-4. **predictCashFlow** - Previsão de fluxo de caixa
-5. **chat** - Assistente conversacional
-
-### Integração com APIs Reais
-
-Para integrar com OpenAI, Claude ou outro serviço:
+Edite `src/utils/creditCardInvoiceParser.js`:
 
 ```javascript
-// Exemplo com OpenAI
-import OpenAI from 'openai'
-
-const openai = new OpenAI({
-  apiKey: process.env.VITE_OPENAI_API_KEY
-})
-
-export const aiService = {
-  async chat(message, context) {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4",
-      messages: [
-        { role: "system", content: "Você é um assistente financeiro..." },
-        { role: "user", content: message }
-      ]
-    })
-    return response.choices[0].message.content
-  }
+// Adicione novos padrões regex para outras operadoras
+const patterns = {
+  bradesco: /padrão_bradesco/,
+  nubank: /padrão_nubank/,
+  itau: /padrão_itau/,
+  // ...
 }
 ```
 
-## 📱 Funcionalidades Mobile
-
-- ✅ Sidebar responsiva com menu hambúrguer
-- ✅ Gráficos adaptáveis
-- ✅ Tabelas com scroll horizontal
-- ✅ Formulários otimizados para touch
-- ✅ Cards empilháveis em telas pequenas
-- ✅ Navegação bottom-friendly
-
-## 🔐 Segurança
-
-Para produção, implemente:
-
-- [ ] Autenticação de usuários
-- [ ] Autorização baseada em roles
-- [ ] Criptografia de dados sensíveis
-- [ ] HTTPS obrigatório
-- [ ] Proteção contra CSRF
-- [ ] Rate limiting
-- [ ] Validação de inputs
+---
 
 ## 🚀 Deploy
 
-### Build para Produção
+### Vercel (Recomendado)
+
+```bash
+npm install -g vercel
+vercel
+```
+
+### Netlify
 
 ```bash
 npm run build
+# Faça upload da pasta dist/
 ```
 
-Os arquivos otimizados estarão em `dist/`
+### Variáveis de Ambiente
+Não esqueça de configurar:
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
 
-### Opções de Deploy
-
-- **Vercel**: `vercel deploy`
-- **Netlify**: `netlify deploy`
-- **GitHub Pages**: Configure no repositório
-- **Docker**: Crie um Dockerfile
-
-## 📊 Dados de Exemplo
-
-O sistema vem com dados de exemplo pré-configurados em `src/utils/mockData.js`:
-
-- 8 transações de exemplo
-- 3 orçamentos configurados
-- 5 extratos bancários
-- 8 categorias (receitas e despesas)
-
-## 🎯 Próximos Passos
-
-- [ ] Integração com API real de IA
-- [ ] Backend com Node.js/Express
-- [ ] Banco de dados (PostgreSQL/MongoDB)
-- [ ] Autenticação JWT
-- [ ] Upload de extratos bancários (CSV/OFX)
-- [ ] Notificações push
-- [ ] Modo escuro
-- [ ] Múltiplas empresas/usuários
-- [ ] Exportação de dados
-- [ ] Integração com bancos via Open Banking
-
-## 📝 Scripts Disponíveis
-
-```bash
-npm run dev      # Inicia servidor de desenvolvimento
-npm run build    # Build para produção
-npm run preview  # Preview do build de produção
-npm run lint     # Executa linter
-```
+---
 
 ## 🤝 Contribuindo
+
+Contribuições são bem-vindas! 
+
+### Como Contribuir:
 
 1. Fork o projeto
 2. Crie uma branch (`git checkout -b feature/NovaFuncionalidade`)
@@ -294,14 +254,96 @@ npm run lint     # Executa linter
 4. Push para a branch (`git push origin feature/NovaFuncionalidade`)
 5. Abra um Pull Request
 
-## 📄 Licença
+### Áreas para Contribuição:
 
-Este projeto está sob a licença MIT.
-
-## 👨‍💻 Autor
-
-Desenvolvido com ❤️ para gestão financeira empresarial inteligente.
+- 🏦 Novos parsers de bancos/cartões
+- 📊 Novos tipos de relatórios
+- 🎨 Melhorias de UI/UX
+- 🐛 Correção de bugs
+- 📝 Documentação
+- 🌍 Traduções
 
 ---
 
-**FinanceIA** - Controle Financeiro Empresarial com Inteligência Artificial
+## 📝 Roadmap
+
+### Em Desenvolvimento
+- [ ] Parser Nubank
+- [ ] Parser Itaú
+- [ ] Emissão de NF-e
+- [ ] Integração com contabilidade
+- [ ] App mobile (React Native)
+
+### Planejado
+- [ ] Integração com Open Banking
+- [ ] Previsão de fluxo de caixa com IA
+- [ ] Alertas inteligentes
+- [ ] API pública
+- [ ] Webhooks
+
+---
+
+## 🐛 Problemas Conhecidos
+
+### CORS na Consulta de NF-e
+O navegador pode bloquear requisições diretas para a Receita Federal.
+
+**Solução**: Implementar backend proxy ou usar extensão CORS (desenvolvimento).
+
+### Busca de NF-e por Período
+Requer certificado digital A1/A3 ou integração com serviços terceiros (NFe.io, Focus NFe).
+
+---
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+
+---
+
+## 👨‍💻 Autor
+
+**Wagner Mocelin**
+
+- GitHub: [@SEU_USUARIO](https://github.com/SEU_USUARIO)
+- LinkedIn: [Seu LinkedIn](https://linkedin.com/in/seu-perfil)
+
+---
+
+## 🙏 Agradecimentos
+
+- [Supabase](https://supabase.com) - Backend incrível
+- [Tailwind CSS](https://tailwindcss.com) - Framework CSS
+- [Lucide](https://lucide.dev) - Ícones
+- [PDF.js](https://mozilla.github.io/pdf.js/) - Parsing de PDF
+- Comunidade React
+
+---
+
+## 📊 Estatísticas do Projeto
+
+- **117 arquivos**
+- **31.000+ linhas de código**
+- **React 18** + **Vite 5**
+- **PostgreSQL** via Supabase
+- **100% TypeScript-ready**
+
+---
+
+## 🔗 Links Úteis
+
+- [Documentação Completa](docs/README.md)
+- [Guia de Instalação](CONFIGURAR_SUPABASE.md)
+- [Como Usar NF-e](NFE_COMO_USAR.md)
+- [Categorização em Lote](CATEGORIZACAO_LOTE.md)
+- [Issues](https://github.com/SEU_USUARIO/FinanceIA/issues)
+
+---
+
+## ⭐ Mostre seu Apoio
+
+Se este projeto foi útil para você, considere dar uma ⭐!
+
+---
+
+**Desenvolvido com ❤️ usando React e Supabase**
